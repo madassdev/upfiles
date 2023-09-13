@@ -1,57 +1,48 @@
-import { Fragment } from 'react';
-import { Dialog, Transition } from '@headlessui/react';
+import { AppContext } from "@/context/AppContext";
+import useEscape from "@/hooks/useEscape";
+import React, { useContext } from "react";
+import { BiX } from "react-icons/bi";
+import './modal.css';
 
-export default function Modal({ children, show = false, maxWidth = '2xl', closeable = true, onClose = () => {} }) {
-    const close = () => {
-        if (closeable) {
-            onClose();
+function Modal() {
+    const { modal, closeModal } = useContext(AppContext);
+    useEscape(() => {
+        if (!modal.noClose) {
+            closeModal();
         }
-    };
-
-    const maxWidthClass = {
-        sm: 'sm:max-w-sm',
-        md: 'sm:max-w-md',
-        lg: 'sm:max-w-lg',
-        xl: 'sm:max-w-xl',
-        '2xl': 'sm:max-w-2xl',
-    }[maxWidth];
-
+    }, [modal]);
+    function handleClose() {
+        if (modal.reloadOnClose === true) {
+            window.location.reload();
+            closeModal()
+        } else {
+            closeModal();
+        }
+    }
     return (
-        <Transition show={show} as={Fragment} leave="duration-200">
-            <Dialog
-                as="div"
-                id="modal"
-                className="fixed inset-0 flex overflow-y-auto px-4 py-6 sm:px-0 items-center z-50 transform transition-all"
-                onClose={close}
-            >
-                <Transition.Child
-                    as={Fragment}
-                    enter="ease-out duration-300"
-                    enterFrom="opacity-0"
-                    enterTo="opacity-100"
-                    leave="ease-in duration-200"
-                    leaveFrom="opacity-100"
-                    leaveTo="opacity-0"
-                >
-                    <div className="absolute inset-0 bg-gray-500/75" />
-                </Transition.Child>
-
-                <Transition.Child
-                    as={Fragment}
-                    enter="ease-out duration-300"
-                    enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                    enterTo="opacity-100 translate-y-0 sm:scale-100"
-                    leave="ease-in duration-200"
-                    leaveFrom="opacity-100 translate-y-0 sm:scale-100"
-                    leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                >
-                    <Dialog.Panel
-                        className={`mb-6 bg-white rounded-lg overflow-hidden shadow-xl transform transition-all sm:w-full sm:mx-auto ${maxWidthClass}`}
+        <>
+            {modal.show && (
+                <div className="modal__container">
+                    <div
+                        className={`md:w-2/3 max-w-[600px] rounded-2xl relative
+                    flex flex-col my-16 mx-8 md:mx-auto ${modal.transparent ? "bg-transparent" : "bg-[#161615]"}`}
                     >
-                        {children}
-                    </Dialog.Panel>
-                </Transition.Child>
-            </Dialog>
-        </Transition>
+                        <div className="p-3">{modal.content}</div>
+                        {modal.noClose ? (
+                            <></>
+                        ) : (
+                            <div
+                                className="absolute flex items-center justify-center w-8 h-8 rounded-full shadow bg-[#161615] -top-12 right-2 cursor-pointer"
+                                onClick={handleClose}
+                            >
+                                <BiX />
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+        </>
     );
 }
+
+export default Modal;
